@@ -17,6 +17,82 @@ function emptySummary(): AttendanceSummary {
   return { total_hadir: 0, total_izin: 0, total_sakit: 0, total_alpha: 0, total_cuti: 0 };
 }
 
+
+function num(value: any) {
+  if (value === null || value === undefined || value === '') return 0;
+  return Number(value) || 0;
+}
+
+function hitungGaji(data: any) {
+  const hadir = num(data.total_hadir);
+  data.uang_makan = hadir * num(data.tarif_uang_makan_harian);
+  data.transport = hadir * num(data.tarif_transport_harian);
+  data.uang_lain_harian = hadir * num(data.tarif_lain_harian);
+  const totalPendapatan = num(data.gaji_pokok) + num(data.uang_makan) + num(data.transport) + num(data.uang_lain_harian) + num(data.insentif) + num(data.bonus) + num(data.tunjangan) + num(data.thr) + num(data.tunjangan_lain);
+  const totalPotongan = num(data.bpjs_kesehatan) + num(data.bpjs_ketenagakerjaan) + num(data.potongan_kasbon) + num(data.potongan_lain);
+  data.total_pendapatan = totalPendapatan;
+  data.total_potongan = totalPotongan;
+  data.gaji_bersih = totalPendapatan - totalPotongan;
+  return data;
+}
+
+async function getKasbonInstallment(karyawanId: number) {
+  const { data: kasbon } = await supabaseAdmin
+    .from('kasbon')
+    .select('*')
+    .eq('karyawan_id', karyawanId)
+    .eq('status', 'approved')
+    .gt('sisa', 0)
+    .order('tanggal_pinjam', { ascending: true })
+    .order('id', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  return kasbon ? Math.min(Number(kasbon.sisa || 0), Number(kasbon.cicilan_per_bulan || kasbon.sisa || 0)) : 0;
+}
+
+async function syncPayrollFromMonthly(karyawanId: number, bulan: number, tahun: number, summary: AttendanceSummary) {
+  const { data: rows, error } = await supabaseAdmin
+    .from('gaji')
+    .select('*')
+    .eq('karyawan_id', karyawanId)
+    .eq('bulan', bulan)
+    .eq('tahun', tahun)
+    .neq('status', 'paid');
+  if (error) throw new Error(error.message);
+  if (!rows?.length) return 0;
+
+  const { data: karyawan } = await supabaseAdmin.from('karyawan').select('*').eq('id', karyawanId).maybeSingle();
+  if (!karyawan) return 0;
+  const [{ data: jabatan }, { data: struktur }, potonganKasbon] = await Promise.all([
+    supabaseAdmin.from('jabatan').select('*').eq('id', karyawan.jabatan_id).maybeSingle(),
+    supabaseAdmin.from('data_gaji').select('*').eq('karyawan_id', karyawanId).eq('is_active', true).maybeSingle(),
+    getKasbonInstallment(karyawanId)
+  ]);
+
+  let updated = 0;
+  for (const row of rows) {
+    const next = hitungGaji({
+      ...row,
+      ...summary,
+      gaji_pokok: Number(struktur?.gaji_pokok ?? jabatan?.gaji_pokok_default ?? row.gaji_pokok ?? 0),
+      tarif_uang_makan_harian: Number(struktur?.uang_makan_harian ?? row.tarif_uang_makan_harian ?? 0),
+      tarif_transport_harian: Number(struktur?.transport_harian ?? row.tarif_transport_harian ?? 0),
+      tarif_lain_harian: Number(struktur?.tunjangan_harian ?? row.tarif_lain_harian ?? 0),
+      bpjs_kesehatan: Number(struktur?.bpjs_kesehatan_default ?? row.bpjs_kesehatan ?? 0),
+      bpjs_ketenagakerjaan: Number(struktur?.bpjs_ketenagakerjaan_default ?? row.bpjs_ketenagakerjaan ?? 0),
+      potongan_lain: Number(struktur?.potongan_lain_default ?? row.potongan_lain ?? 0),
+      potongan_kasbon: potonganKasbon
+    });
+    delete next.id;
+    delete next.created_at;
+    delete next.updated_at;
+    const { error: updateError } = await supabaseAdmin.from('gaji').update(next).eq('id', row.id);
+    if (updateError) throw new Error(updateError.message);
+    updated++;
+  }
+  return updated;
+}
+
 async function syncMonthly(karyawanId: number, bulan: number, tahun: number) {
   const start = `${tahun}-${String(bulan).padStart(2, '0')}-01`;
   const next = new Date(tahun, bulan, 1);
@@ -46,6 +122,7 @@ async function syncMonthly(karyawanId: number, bulan: number, tahun: number) {
     keterangan: 'Rekap otomatis dari scan QR / absensi harian.'
   }, { onConflict: 'karyawan_id,bulan,tahun' });
   if (upsertError) throw new Error(upsertError.message);
+  await syncPayrollFromMonthly(karyawanId, bulan, tahun, summary);
   return summary;
 }
 

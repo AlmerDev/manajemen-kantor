@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 import { notFound } from 'next/navigation';
 import CrudForm from '@/components/CrudForm';
 import { getModule } from '@/lib/modules';

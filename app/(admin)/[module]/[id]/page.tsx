@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getModule } from '@/lib/modules';
@@ -44,7 +46,7 @@ function SlipGaji({ row, lookups }: any) {
   const jabatan = relationLabel(jabatanId, { table: 'jabatan', key: 'id', label: 'nama_jabatan' }, lookups);
   const income = ['gaji_pokok','uang_makan','transport','uang_lain_harian','insentif','bonus','tunjangan','thr','tunjangan_lain'];
   const cut = ['bpjs_kesehatan','bpjs_ketenagakerjaan','potongan_kasbon','potongan_lain'];
-  return <div className="slip-box premium-slip"><div className="slip-head"><div><span className="eyebrow">Payroll document</span><h3>Slip Gaji</h3><p>Periode {bulanNama[Number(row.bulan)]} {row.tahun}</p></div>{prettyStatus(row.status)}</div><div className="slip-profile"><div><span>Nama</span><strong>{karyawan}</strong></div><div><span>Jabatan</span><strong>{jabatan}</strong></div><div><span>Gaji bersih</span><strong>{rupiah(row.gaji_bersih)}</strong></div></div><div className="attendance-strip"><div><span>Hadir</span><strong>{row.total_hadir || 0}</strong></div><div><span>Izin</span><strong>{row.total_izin || 0}</strong></div><div><span>Sakit</span><strong>{row.total_sakit || 0}</strong></div><div><span>Alpha</span><strong>{row.total_alpha || 0}</strong></div><div><span>Cuti</span><strong>{row.total_cuti || 0}</strong></div></div><div className="row g-4"><div className="col-md-6"><div className="salary-panel salary-in"><h6>Pendapatan</h6>{income.map((f) => <div className="salary-row" key={f}><span>{f.replaceAll('_',' ')}</span><strong>{rupiah(row[f])}</strong></div>)}</div></div><div className="col-md-6"><div className="salary-panel salary-out"><h6>Potongan</h6>{cut.map((f) => <div className="salary-row" key={f}><span>{f.replaceAll('_',' ')}</span><strong>{rupiah(row[f])}</strong></div>)}</div></div></div><div className="slip-total"><span>Total diterima</span><strong>{rupiah(row.gaji_bersih)}</strong></div><div className="mt-3"><Link href={`/export/gaji/pdf?id=${row.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-danger"><i className="bi bi-file-earmark-pdf" /> Preview PDF</Link></div></div>;
+  return <div className="slip-box premium-slip"><div className="slip-head"><div><span className="eyebrow">Payroll document</span><h3>Slip Gaji</h3><p>Periode {bulanNama[Number(row.bulan)]} {row.tahun}</p></div>{prettyStatus(row.status)}</div><div className="slip-profile"><div><span>Nama</span><strong>{karyawan}</strong></div><div><span>Jabatan</span><strong>{jabatan}</strong></div><div><span>Gaji bersih</span><strong>{rupiah(row.gaji_bersih)}</strong></div></div><div className="attendance-strip"><div><span>Hadir</span><strong>{row.total_hadir || 0}</strong></div><div><span>Izin</span><strong>{row.total_izin || 0}</strong></div><div><span>Sakit</span><strong>{row.total_sakit || 0}</strong></div><div><span>Alpha</span><strong>{row.total_alpha || 0}</strong></div><div><span>Cuti</span><strong>{row.total_cuti || 0}</strong></div></div><div className="row g-4"><div className="col-md-6"><div className="salary-panel salary-in"><h6>Pendapatan</h6>{income.map((f) => <div className="salary-row" key={f}><span>{f.replaceAll('_',' ')}</span><strong>{rupiah(row[f])}</strong></div>)}</div></div><div className="col-md-6"><div className="salary-panel salary-out"><h6>Potongan</h6>{cut.map((f) => <div className="salary-row" key={f}><span>{f.replaceAll('_',' ')}</span><strong>{rupiah(row[f])}</strong></div>)}</div></div></div><div className="slip-total"><span>Total diterima</span><strong>{rupiah(row.gaji_bersih)}</strong></div><div className="mt-3"><Link prefetch={false} href={`/export/gaji/pdf?id=${row.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-danger"><i className="bi bi-file-earmark-pdf" /> Preview PDF</Link></div></div>;
 }
 
 function DetailHero({ config, row }: any) {
@@ -61,8 +63,8 @@ function DetailHero({ config, row }: any) {
       </div>
       <div className="detail-hero-actions">
         {status ? prettyStatus(status) : null}
-        <Link href={`/${config.slug}`} className="btn btn-light border"><i className="bi bi-arrow-left" /> Kembali</Link>
-        {config.canEdit ? <Link href={`/${config.slug}/${row.id}/edit`} className="btn btn-primary"><i className="bi bi-pencil-square" /> Edit</Link> : null}
+        <Link prefetch={false} href={`/${config.slug}`} className="btn btn-light border"><i className="bi bi-arrow-left" /> Kembali</Link>
+        {config.canEdit ? <Link prefetch={false} href={`/${config.slug}/${row.id}/edit`} className="btn btn-primary"><i className="bi bi-pencil-square" /> Edit</Link> : null}
       </div>
     </section>
   );
@@ -74,7 +76,7 @@ export default async function DetailPage({ params }: { params: { module: string;
   const [row, lookups] = await Promise.all([getRow(config.table, params.id), getLookups()]);
   if (!row) notFound();
   if (config.slug === 'gaji') {
-    return <><div className="detail-hero mb-4"><div className="detail-hero-main"><div className="module-hero-icon"><i className="bi bi-receipt" /></div><div><span className="eyebrow">Detail payroll</span><h1>Slip Gaji</h1><p>Lembar slip gaji siap cetak dan export PDF.</p></div></div><Link href="/gaji" className="btn btn-light border"><i className="bi bi-arrow-left" /> Kembali</Link></div><SlipGaji row={row} lookups={lookups} /></>;
+    return <><div className="detail-hero mb-4"><div className="detail-hero-main"><div className="module-hero-icon"><i className="bi bi-receipt" /></div><div><span className="eyebrow">Detail payroll</span><h1>Slip Gaji</h1><p>Lembar slip gaji siap cetak dan export PDF.</p></div></div><Link prefetch={false} href="/gaji" className="btn btn-light border"><i className="bi bi-arrow-left" /> Kembali</Link></div><SlipGaji row={row} lookups={lookups} /></>;
   }
   return (
     <>

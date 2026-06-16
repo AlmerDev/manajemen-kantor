@@ -20,11 +20,15 @@ function resetActionLoading() {
     form.classList.remove('is-submitting');
     delete form.dataset.submitting;
     delete form.dataset.confirmed;
+    delete form.dataset.loadingStarted;
+    delete form.dataset.activeLoadingText;
+    delete form.dataset.controlsDisabled;
   });
 
   document.querySelectorAll<HTMLButtonElement>('button.is-loading').forEach((button) => {
     button.classList.remove('is-loading');
     button.disabled = false;
+    button.removeAttribute('aria-busy');
     if (button.dataset.originalHtml) {
       button.innerHTML = button.dataset.originalHtml;
       delete button.dataset.originalHtml;

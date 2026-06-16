@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { deleteRecord, generateBulkGaji, generateAbsensiBulanan, quickStatus, togglePengumuman, bulkAbsensi } from '@/app/actions';
@@ -79,7 +80,7 @@ function ModuleTools({ config, rows, bulan, tahun, lookups, returnTo }: any) {
     const karyawan = (lookups.karyawan || []).filter((k: any) => k.status === 'aktif');
     return (
       <div className="card premium-card mb-4">
-        <div className="card-header panel-header"><div><span className="eyebrow">Quick input</span><strong><i className="bi bi-calendar-plus me-2" />Absensi massal</strong></div><div className="d-flex flex-wrap gap-2 align-items-center"><small>{karyawan.length} karyawan aktif</small><Link href="/qr-karyawan" className="btn btn-light border btn-sm"><i className="bi bi-qr-code-scan" /> QR Karyawan</Link><Link href="/scan-absen" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm"><i className="bi bi-camera" /> Scan QR</Link></div></div>
+        <div className="card-header panel-header"><div><span className="eyebrow">Quick input</span><strong><i className="bi bi-calendar-plus me-2" />Absensi massal</strong></div><div className="d-flex flex-wrap gap-2 align-items-center"><small>{karyawan.length} karyawan aktif</small><Link prefetch={false} href="/qr-karyawan" className="btn btn-light border btn-sm"><i className="bi bi-qr-code-scan" /> QR Karyawan</Link><Link prefetch={false} href="/scan-absen" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm"><i className="bi bi-camera" /> Scan QR</Link></div></div>
         <form action={bulkAbsensi} className="card-body" data-loading-text="Menyimpan absensi massal..."><HiddenReturn returnTo={returnTo} />
           <div className="row g-3">
             <div className="col-md-3"><label className="form-label">Tanggal</label><input type="date" name="tanggal" defaultValue={todayISO()} className="form-control" required /></div>
@@ -126,8 +127,8 @@ function ModuleHero({ config, rows, all, query, searchParams }: any) {
         </div>
       </div>
       <div className="module-hero-actions">
-        {config.exports ? <><Link href={`/export/${config.slug}/xlsx?${query}`} className="btn btn-light border"><i className="bi bi-file-earmark-excel" /> Excel</Link><Link href={`/export/${config.slug}/pdf?${query}`} target="_blank" rel="noopener noreferrer" className="btn btn-light border"><i className="bi bi-file-earmark-pdf" /> Preview PDF</Link></> : null}
-        {config.hasCreate ? <Link href={`/${config.slug}/create`} className="btn btn-primary"><i className="bi bi-plus-lg" /> Tambah {config.single}</Link> : null}
+        {config.exports ? <><Link prefetch={false} href={`/export/${config.slug}/xlsx?${query}`} className="btn btn-light border"><i className="bi bi-file-earmark-excel" /> Excel</Link><Link prefetch={false} href={`/export/${config.slug}/pdf?${query}`} target="_blank" rel="noopener noreferrer" className="btn btn-light border"><i className="bi bi-file-earmark-pdf" /> Preview PDF</Link></> : null}
+        {config.hasCreate ? <Link prefetch={false} href={`/${config.slug}/create`} className="btn btn-primary"><i className="bi bi-plus-lg" /> Tambah {config.single}</Link> : null}
       </div>
       <div className="module-hero-metrics">
         <div><span>Total data</span><strong>{all.length}</strong></div>
@@ -156,7 +157,7 @@ export default async function ModulePage({ params, searchParams }: { params: { m
             <div className="col-lg-4 col-md-6"><label className="form-label">Cari data</label><div className="input-with-icon"><i className="bi bi-search" /><input type="search" name="search" defaultValue={searchParams.search || ''} className="form-control" placeholder={`Cari ${config.title.toLowerCase()}...`} /></div></div>
             {config.monthly ? <><div className="col-lg-2 col-md-3"><label className="form-label">Bulan</label><select name="bulan" defaultValue={String(bulan)} className="form-select">{monthOptions.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}</select></div><div className="col-lg-2 col-md-3"><label className="form-label">Tahun</label><input name="tahun" type="number" min="2020" defaultValue={tahun} className="form-control" /></div></> : null}
             {(config.filters || []).map((f) => <div className="col-lg-2 col-md-3" key={f.name}><label className="form-label">{f.label}</label><select name={f.name} defaultValue={searchParams[f.name] || ''} className="form-select"><option value="">Semua</option>{f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>)}
-            <div className="col-lg-2 col-md-4 d-flex gap-2"><button className="btn btn-primary flex-fill"><i className="bi bi-funnel" /> Filter</button><Link href={`/${config.slug}`} className="btn btn-light border">Reset</Link></div>
+            <div className="col-lg-2 col-md-4 d-flex gap-2"><button className="btn btn-primary flex-fill"><i className="bi bi-funnel" /> Filter</button><Link prefetch={false} href={`/${config.slug}`} className="btn btn-light border">Reset</Link></div>
           </form>
         </div>
       </div>
@@ -179,8 +180,8 @@ export default async function ModulePage({ params, searchParams }: { params: { m
                     {config.columns.map((c, index) => <td key={c.key}>{renderCell(row, c, lookups, index)}</td>)}
                     <td className="text-end pe-4"><div className="action-group">
                       <QuickActions module={config.slug} row={row} returnTo={returnTo} />
-                      {config.canShow ? <Link className="action-btn action-view" href={`/${config.slug}/${row.id}`}><i className="bi bi-eye" /> Detail</Link> : null}
-                      {config.canEdit ? <Link className="action-btn action-edit" href={`/${config.slug}/${row.id}/edit`}><i className="bi bi-pencil-square" /> Edit</Link> : null}
+                      {config.canShow ? <Link prefetch={false} className="action-btn action-view" href={`/${config.slug}/${row.id}`}><i className="bi bi-eye" /> Detail</Link> : null}
+                      {config.canEdit ? <Link prefetch={false} className="action-btn action-edit" href={`/${config.slug}/${row.id}/edit`}><i className="bi bi-pencil-square" /> Edit</Link> : null}
                       {config.canDelete ? <form action={deleteRecord.bind(null, config.slug, String(row.id))} data-confirm="Yakin hapus data ini? Data yang sudah dihapus tidak bisa dikembalikan." data-loading-text="Menghapus data..."><HiddenReturn returnTo={returnTo} /><button className="action-btn action-delete"><i className="bi bi-trash3" /> Hapus</button></form> : null}
                     </div></td>
                   </tr>

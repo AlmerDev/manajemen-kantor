@@ -1,21 +1,29 @@
 import 'server-only';
+import { unstable_noStore as noStore } from 'next/cache';
 import { supabaseAdmin } from './supabase';
 import { getModule, ModuleConfig, relatedTables } from './modules';
 import { monthYearNow } from './format';
 
 export async function listRows(table: string) {
-  const { data, error } = await supabaseAdmin.from(table).select('*').order('created_at', { ascending: false });
+  noStore();
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .select('*')
+    // Urutan dibuat stabil berdasarkan ID agar data yang baru diedit tidak loncat posisi.
+    .order('id', { ascending: true });
   if (error) throw new Error(error.message);
   return data || [];
 }
 
 export async function getRow(table: string, id: string | number) {
+  noStore();
   const { data, error } = await supabaseAdmin.from(table).select('*').eq('id', id).single();
   if (error) return null;
   return data;
 }
 
 export async function getLookups() {
+  noStore();
   const out: Record<string, any[]> = {};
   for (const table of relatedTables) {
     const { data } = await supabaseAdmin.from(table).select('*').order('id', { ascending: true });
@@ -31,6 +39,7 @@ export function relationLabel(value: any, relation: any, lookups: Record<string,
 }
 
 export async function dashboardData() {
+  noStore();
   const [karyawan, tugas, kasbon, cuti, gaji, absensi, pengumuman, lookups] = await Promise.all([
     listRows('karyawan'), listRows('tugas'), listRows('kasbon'), listRows('cuti'), listRows('gaji'), listRows('absensi'), listRows('pengumuman'), getLookups()
   ]);
@@ -78,6 +87,7 @@ export async function dashboardData() {
 }
 
 export async function moduleRows(config: ModuleConfig, query: Record<string, any>) {
+  noStore();
   const all = await listRows(config.table);
   const lookups = await getLookups();
   const q = String(query.search || '').toLowerCase().trim();
@@ -101,6 +111,10 @@ export async function moduleRows(config: ModuleConfig, query: Record<string, any
     const val = query[filter.name];
     if (val) filtered = filtered.filter((r: any) => String(r[filter.name]) === String(val));
   }
+
+  // Pastikan urutan tabel selalu konsisten. Tanpa sort stabil, Postgres bisa
+  // mengembalikan urutan berbeda setelah UPDATE karena posisi fisik row berubah.
+  filtered = [...filtered].sort((a: any, b: any) => Number(a.id || 0) - Number(b.id || 0));
 
   return { rows: filtered, all, lookups, bulan: bulanParam, tahun: tahunParam };
 }

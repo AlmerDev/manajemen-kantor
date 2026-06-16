@@ -59,14 +59,27 @@ export default function AdminClient() {
     const closeConfirm = () => {
       pendingForm = null;
       modal.classList.remove('show');
+      if (okBtn) {
+        okBtn.disabled = false;
+        okBtn.classList.remove('is-loading');
+        okBtn.innerHTML = '<i class="bi bi-trash3"></i> Ya, hapus';
+      }
     };
 
     const submitConfirmed = () => {
       const form = pendingForm;
       if (!form) return closeConfirm();
+      if (okBtn?.disabled) return;
       form.dataset.confirmed = '1';
-      closeConfirm();
-      form.requestSubmit();
+      if (okBtn) {
+        okBtn.disabled = true;
+        okBtn.classList.add('is-loading');
+        okBtn.innerHTML = '<span class="btn-spinner"></span> Memproses...';
+      }
+      window.setTimeout(() => {
+        closeConfirm();
+        form.requestSubmit();
+      }, 80);
     };
 
     cancelBtn?.addEventListener('click', closeConfirm);

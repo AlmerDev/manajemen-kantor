@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 import { deleteProfilePhoto, updatePassword, updateProfile } from '@/app/actions';
 import { requireUser } from '@/lib/session';
 import { publicFileUrl } from '@/lib/supabase';

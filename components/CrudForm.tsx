@@ -86,7 +86,7 @@ export default function CrudForm({ config, row, lookups, mode, error }: { config
           <h1>{mode === 'create' ? `Tambah ${config.single}` : `Edit ${config.single}`}</h1>
           <p>{config.description}</p>
         </div>
-        <Link href={`/${config.slug}`} className="btn btn-light border ms-auto"><i className="bi bi-arrow-left" /> Kembali</Link>
+        <Link prefetch={false} href={`/${config.slug}`} className="btn btn-light border ms-auto"><i className="bi bi-arrow-left" /> Kembali</Link>
       </div>
 
       <div className="form-shell">
@@ -119,7 +119,7 @@ export default function CrudForm({ config, row, lookups, mode, error }: { config
             </div>
           </div>
           <div className="card-footer sticky-form-actions">
-            <Link href={`/${config.slug}`} className="btn btn-light border"><i className="bi bi-x-lg" /> Batal</Link>
+            <Link prefetch={false} href={`/${config.slug}`} className="btn btn-light border"><i className="bi bi-x-lg" /> Batal</Link>
             <button type="submit" className="btn btn-primary"><i className="bi bi-save" /> Simpan data</button>
           </div>
         </form>
