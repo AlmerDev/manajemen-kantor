@@ -4838,3 +4838,45 @@ form.is-submitting .publish-switch .btn-spinner {
     width: 60%;
   }
 }
+
+/* =========================================================
+   LOGIN SUBMIT LOADING FIX
+   Loading login dibuat khusus via useFormStatus supaya langsung muncul
+   saat tombol Masuk ditekan, tidak menunggu redirect/server action selesai.
+   ========================================================= */
+.guest-submit {
+  gap: 8px !important;
+  position: relative !important;
+}
+.guest-submit i {
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  margin-left: 2px !important;
+}
+.guest-submit.is-pending,
+.guest-submit:disabled {
+  cursor: wait !important;
+  opacity: .9 !important;
+  background: #1d4ed8 !important;
+  pointer-events: none !important;
+}
+.login-inline-loading {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: .84rem;
+  font-weight: 750;
+  text-align: center;
+}
+.login-inline-loading .mini-spinner {
+  width: 15px;
+  height: 15px;
+}

@@ -3,6 +3,7 @@ import { loginAction } from "@/app/actions";
 import { getSessionUser } from "@/lib/session";
 import { redirect } from "next/navigation";
 import PasswordField from "@/components/PasswordField";
+import LoginSubmitButton from "@/components/LoginSubmitButton";
 import { getOfficeSettings, officeLogoUrl } from "@/lib/office";
 
 export default async function LoginPage({
@@ -72,6 +73,7 @@ export default async function LoginPage({
               action={loginAction}
               autoComplete="on"
               data-loading-text="Memeriksa akun..."
+              data-no-loading="true"
             >
               <div className="guest-field">
                 <label htmlFor="login-email">Email</label>
@@ -109,9 +111,7 @@ export default async function LoginPage({
                   Ingat saya di perangkat ini
                 </label>
               </div>
-              <button type="submit" className="guest-submit">
-                Masuk
-              </button>
+              <LoginSubmitButton />
             </form>
           </div>
         </section>
