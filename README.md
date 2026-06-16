@@ -59,3 +59,17 @@ Catatan: kalau QR dibuat di localhost, isi QR akan mengarah ke localhost. Setela
 - Semua tombol global dipaksa `inline-flex`, `align-items:center`, dan `justify-content:center`.
 - Text + icon tombol QR, CRUD, form, modal, scan, dan export sekarang rata tengah.
 - Loading spinner di dalam tombol tetap center dan tidak bikin tulisan turun/geser.
+
+## Update loading global
+Versi ini menambahkan loading feedback untuk semua proses utama:
+- semua form/server action otomatis menampilkan loading dan tombol disable
+- login/logout/profile/settings/filter/generate/approve/bayar/hapus/toggle/export/CRUD ikut punya loading
+- link internal menampilkan indikator proses saat pindah halaman
+- loading otomatis reset setelah route berubah atau setelah proses selesai
+
+## Update auto sync Absensi Bulanan
+
+- Setiap tambah/edit/hapus **Absensi Harian** dari admin, rekap **Absensi Bulanan** otomatis ikut dihitung ulang.
+- Absensi massal juga otomatis update rekap bulanan.
+- Scan QR tetap otomatis update absensi harian + bulanan.
+- Untuk database yang sudah terlanjur jalan, jalankan `supabase/add_absensi_bulanan_auto_sync.sql` agar Supabase juga punya trigger otomatis di level database.

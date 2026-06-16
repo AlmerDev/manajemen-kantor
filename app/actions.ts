@@ -166,6 +166,64 @@ async function getAbsensiSummary(karyawanId: number, bulan: number, tahun: numbe
   return summary;
 }
 
+function getMonthYearFromDate(value: any) {
+  const text = String(value || '').slice(0, 10);
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const tahun = Number(match[1]);
+  const bulan = Number(match[2]);
+  if (!tahun || bulan < 1 || bulan > 12) return null;
+  return { bulan, tahun };
+}
+
+async function countAbsensiHarian(karyawanId: number, bulan: number, tahun: number) {
+  const { start, end } = monthRange(bulan, tahun);
+  const { data: daily, error } = await supabaseAdmin
+    .from('absensi')
+    .select('status')
+    .eq('karyawan_id', karyawanId)
+    .gte('tanggal', start)
+    .lt('tanggal', end);
+
+  if (error) throw new Error(error.message);
+  const summary = { total_hadir: 0, total_izin: 0, total_sakit: 0, total_alpha: 0, total_cuti: 0 };
+  for (const row of daily || []) {
+    if (row.status === 'hadir') summary.total_hadir += 1;
+    if (row.status === 'izin') summary.total_izin += 1;
+    if (row.status === 'sakit') summary.total_sakit += 1;
+    if (row.status === 'alpha') summary.total_alpha += 1;
+    if (row.status === 'cuti') summary.total_cuti += 1;
+  }
+  return summary;
+}
+
+async function syncAbsensiBulananFromDaily(karyawanId: number, tanggal: any) {
+  const period = getMonthYearFromDate(tanggal);
+  if (!karyawanId || !period) return;
+  const summary = await countAbsensiHarian(karyawanId, period.bulan, period.tahun);
+  const { error } = await supabaseAdmin.from('absensi_bulanan').upsert({
+    karyawan_id: karyawanId,
+    bulan: period.bulan,
+    tahun: period.tahun,
+    ...summary,
+    keterangan: 'Rekap otomatis dari absensi harian.'
+  }, { onConflict: 'karyawan_id,bulan,tahun' });
+  if (error) throw new Error(error.message);
+}
+
+async function syncAbsensiBulananFromRows(rows: Array<any | null | undefined>) {
+  const done = new Set<string>();
+  for (const row of rows) {
+    if (!row?.karyawan_id || !row?.tanggal) continue;
+    const period = getMonthYearFromDate(row.tanggal);
+    if (!period) continue;
+    const key = `${row.karyawan_id}-${period.bulan}-${period.tahun}`;
+    if (done.has(key)) continue;
+    done.add(key);
+    await syncAbsensiBulananFromDaily(Number(row.karyawan_id), row.tanggal);
+  }
+}
+
 async function preprocess(moduleSlug: string, data: any, mode: 'create' | 'update', currentUser: any, oldRow?: any) {
   if (moduleSlug === 'gaji') {
     ['total_hadir','total_izin','total_sakit','total_alpha','total_cuti','tarif_uang_makan_harian','tarif_transport_harian','tarif_lain_harian','uang_makan','transport','uang_lain_harian','insentif','bonus','tunjangan','thr','tunjangan_lain','bpjs_kesehatan','bpjs_ketenagakerjaan','potongan_kasbon','potongan_lain'].forEach((k) => data[k] = num(data[k]));
@@ -261,6 +319,14 @@ export async function saveRecord(moduleSlug: string, mode: 'create' | 'update', 
     ? await supabaseAdmin.from(config.table).insert(data)
     : await supabaseAdmin.from(config.table).update(data).eq('id', id);
   if (result.error) redirect(`/${moduleSlug}${mode === 'create' ? '/create' : `/${id}/edit`}?error=${encodeURIComponent(result.error.message)}`);
+
+  if (moduleSlug === 'absensi') {
+    await syncAbsensiBulananFromRows([{ ...oldRow, ...data }, oldRow]);
+    revalidatePath('/absensi-bulanan');
+    revalidatePath('/gaji');
+    revalidatePath('/dashboard');
+  }
+
   revalidatePath(`/${moduleSlug}`);
   redirectBack(moduleSlug, formData, 'success', `${config.single} berhasil ${mode === 'create' ? 'ditambahkan' : 'diperbarui'}.`);
 }
@@ -268,8 +334,21 @@ export async function saveRecord(moduleSlug: string, mode: 'create' | 'update', 
 export async function deleteRecord(moduleSlug: string, id: string, formData?: FormData) {
   await requireUser();
   const config = findConfigOrThrow(moduleSlug);
+  let oldRow: any = null;
+  if (moduleSlug === 'absensi') {
+    const old = await supabaseAdmin.from(config.table).select('*').eq('id', id).maybeSingle();
+    oldRow = old.data;
+  }
   const { error } = await supabaseAdmin.from(config.table).delete().eq('id', id);
   if (error) redirectBack(moduleSlug, formData, 'error', error.message);
+
+  if (moduleSlug === 'absensi') {
+    await syncAbsensiBulananFromRows([oldRow]);
+    revalidatePath('/absensi-bulanan');
+    revalidatePath('/gaji');
+    revalidatePath('/dashboard');
+  }
+
   revalidatePath(`/${moduleSlug}`);
   redirectBack(moduleSlug, formData, 'success', `${config.single} berhasil dihapus.`);
 }
@@ -351,7 +430,11 @@ export async function bulkAbsensi(formData: FormData) {
     if (!error) created++;
     else skipped++;
   }
+  await syncAbsensiBulananFromRows(ids.map((id) => ({ karyawan_id: Number(id), tanggal })));
   revalidatePath('/absensi');
+  revalidatePath('/absensi-bulanan');
+  revalidatePath('/gaji');
+  revalidatePath('/dashboard');
   const date = new Date(tanggal);
   const base = safeReturnTo('absensi', formData);
   const url = new URL(base, 'http://local.test');

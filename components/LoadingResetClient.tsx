@@ -4,11 +4,17 @@ import { useEffect, useMemo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 function resetActionLoading() {
+  document.documentElement.classList.remove('is-global-loading');
   const toast = document.getElementById('actionLoadingToast');
   toast?.classList.remove('show');
   toast?.classList.remove('is-error');
   const label = toast?.querySelector('strong');
   if (label) label.textContent = 'Memproses...';
+
+  const overlay = document.getElementById('globalProcessOverlay');
+  overlay?.classList.remove('show');
+  const overlayTitle = overlay?.querySelector('.global-process-card strong');
+  if (overlayTitle) overlayTitle.textContent = 'Memproses...';
 
   document.querySelectorAll<HTMLFormElement>('form.is-submitting, form[data-submitting="1"]').forEach((form) => {
     form.classList.remove('is-submitting');
@@ -27,6 +33,11 @@ function resetActionLoading() {
 
   document.querySelectorAll<HTMLInputElement>('input[type="submit"]:disabled').forEach((input) => {
     input.disabled = false;
+  });
+
+  document.querySelectorAll<HTMLAnchorElement>('a.is-link-loading').forEach((link) => {
+    link.classList.remove('is-link-loading');
+    link.removeAttribute('aria-busy');
   });
 }
 

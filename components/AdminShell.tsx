@@ -69,7 +69,7 @@ export default function AdminShell({ user, currentPath, officeSettings, pendingC
                 <small className="text-capitalize">{user.role}</small>
               </span>
             </Link>
-            <form action={logoutAction}><button className="topbar-logout clean-logout" aria-label="Keluar dari panel"><i className="bi bi-box-arrow-right" /><span>Keluar</span></button></form>
+            <form action={logoutAction} data-loading-text="Keluar dari panel..."><button className="topbar-logout clean-logout" aria-label="Keluar dari panel"><i className="bi bi-box-arrow-right" /><span>Keluar</span></button></form>
           </div>
         </header>
         <div className="content-area">{children}</div>

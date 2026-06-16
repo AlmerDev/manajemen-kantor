@@ -146,10 +146,11 @@ export default function QrAttendanceScanner({ settings, logoUrl = '' }: Props) {
             <div id="qr-reader" className="qr-reader-box" />
             {!scanning ? <div className="scanner-placeholder"><i className="bi bi-camera-video" /><span>Klik mulai scan untuk membuka kamera</span></div> : null}
             {processing ? <div className="scanner-processing"><span className="spinner-border spinner-border-sm" /> Memproses absensi...</div> : null}
+            {scanning && !cameraReady && !processing ? <div className="scanner-processing"><span className="spinner-border spinner-border-sm" /> Membuka kamera...</div> : null}
           </div>
 
           <div className="scan-actions">
-            {!scanning ? <button type="button" className="btn btn-primary" onClick={startScanner} disabled={processing}><i className="bi bi-camera" /> Mulai Scan</button> : null}
+            {!scanning ? <button type="button" className="btn btn-primary" onClick={startScanner} disabled={processing || scanning}><i className="bi bi-camera" /> Mulai Scan</button> : null}
             {scanning ? <button type="button" className="btn btn-light border" onClick={() => void stopScanner()} disabled={processing}><i className="bi bi-stop-circle" /> Stop Kamera</button> : null}
           </div>
         </div>
@@ -175,14 +176,14 @@ export default function QrAttendanceScanner({ settings, logoUrl = '' }: Props) {
                 <div><span>Keluar</span><strong>{result.absensi?.jam_keluar || '-'}</strong></div>
                 <div><span>Hadir bulan ini</span><strong>{result.summary?.total_hadir ?? 0} hari</strong></div>
               </div>
-              <button type="button" className="btn btn-primary w-100" onClick={startScanner} disabled={processing || scanning}><i className="bi bi-qr-code-scan" /> Scan Berikutnya</button>
+              <button type="button" className="btn btn-primary w-100" onClick={startScanner} disabled={processing || scanning}>{processing ? <><span className="spinner-border spinner-border-sm" /> Memproses...</> : <><i className="bi bi-qr-code-scan" /> Scan Berikutnya</>}</button>
             </div>
           ) : null}
 
           <div className="manual-scan-box">
             <label className="form-label">Input manual token / URL QR</label>
             <textarea className="form-control" rows={3} placeholder="Tempel isi QR di sini kalau kamera bermasalah..." value={manualToken} onChange={(e) => setManualToken(e.target.value)} />
-            <button type="button" className="btn btn-dark w-100 mt-2" onClick={() => sendToken(manualToken)} disabled={processing}><i className="bi bi-send" /> Proses Manual</button>
+            <button type="button" className="btn btn-dark w-100 mt-2" onClick={() => sendToken(manualToken)} disabled={processing}>{processing ? <><span className="spinner-border spinner-border-sm" /> Memproses...</> : <><i className="bi bi-send" /> Proses Manual</>}</button>
           </div>
         </div>
       </section>

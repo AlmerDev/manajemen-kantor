@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: { erro
             <p className="guest-subtitle">Gunakan akun admin yang sudah terdaftar untuk melanjutkan.</p>
             {searchParams.success ? <div className="guest-alert guest-alert-success"><i className="bi bi-check-circle-fill" /> <span>{searchParams.success}</span></div> : null}
             {searchParams.error ? <div className="guest-alert guest-alert-danger"><i className="bi bi-exclamation-circle-fill" /> <span>{searchParams.error}</span></div> : null}
-            <form action={loginAction} autoComplete="on">
+            <form action={loginAction} autoComplete="on" data-loading-text="Memeriksa akun...">
               <div className="guest-field">
                 <label htmlFor="login-email">Email</label>
                 <div className="guest-input-wrap"><span className="guest-input-icon"><i className="bi bi-envelope" /></span><input id="login-email" type="email" name="email" required autoFocus autoComplete="username" placeholder="admin@kantor.com" defaultValue={searchParams.email || ''} /></div>

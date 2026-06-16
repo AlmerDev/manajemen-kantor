@@ -30,7 +30,7 @@ export default async function ProfilPage({ searchParams }: { searchParams: { suc
 
       <div className="profile-grid">
         <div className="profile-main-stack">
-          <form action={updateProfile} className="card premium-card">
+          <form action={updateProfile} className="card premium-card" data-loading-text="Menyimpan profil...">
             <div className="card-header panel-header"><div><span className="eyebrow">Personal info</span><strong><i className="bi bi-person-gear me-2" />Profil admin</strong></div></div>
             <div className="card-body">
               <div className="row g-3">
@@ -42,14 +42,14 @@ export default async function ProfilPage({ searchParams }: { searchParams: { suc
             </div>
           </form>
 
-          <form action={deleteProfilePhoto} data-confirm="Hapus foto profil?" className="danger-inline-card">
+          <form action={deleteProfilePhoto} data-confirm="Hapus foto profil?" className="danger-inline-card" data-loading-text="Menghapus foto profil...">
             <div><strong>Hapus foto profil</strong><span>Avatar akan kembali ke inisial otomatis.</span></div>
             <button className="btn btn-outline-danger"><i className="bi bi-trash3" /> Hapus foto</button>
           </form>
         </div>
 
         <aside className="profile-side-stack">
-          <form action={updatePassword} className="card premium-card">
+          <form action={updatePassword} className="card premium-card" data-loading-text="Mengganti password...">
             <div className="card-header panel-header"><div><span className="eyebrow">Security</span><strong><i className="bi bi-key me-2" />Ganti password</strong></div></div>
             <div className="card-body">
               <div className="field-block mb-3"><label className="form-label"><i className="bi bi-lock" /> Password saat ini</label><input name="current_password" type="password" className="form-control" required /></div>

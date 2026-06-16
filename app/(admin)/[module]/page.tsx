@@ -152,7 +152,7 @@ export default async function ModulePage({ params, searchParams }: { params: { m
 
       <div className="card toolbar-card mb-4">
         <div className="card-body">
-          <form className="row g-3 align-items-end">
+          <form className="row g-3 align-items-end" data-loading-text="Memfilter data...">
             <div className="col-lg-4 col-md-6"><label className="form-label">Cari data</label><div className="input-with-icon"><i className="bi bi-search" /><input type="search" name="search" defaultValue={searchParams.search || ''} className="form-control" placeholder={`Cari ${config.title.toLowerCase()}...`} /></div></div>
             {config.monthly ? <><div className="col-lg-2 col-md-3"><label className="form-label">Bulan</label><select name="bulan" defaultValue={String(bulan)} className="form-select">{monthOptions.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}</select></div><div className="col-lg-2 col-md-3"><label className="form-label">Tahun</label><input name="tahun" type="number" min="2020" defaultValue={tahun} className="form-control" /></div></> : null}
             {(config.filters || []).map((f) => <div className="col-lg-2 col-md-3" key={f.name}><label className="form-label">{f.label}</label><select name={f.name} defaultValue={searchParams[f.name] || ''} className="form-select"><option value="">Semua</option>{f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>)}

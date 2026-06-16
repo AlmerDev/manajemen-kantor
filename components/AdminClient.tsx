@@ -56,76 +56,9 @@ export default function AdminClient() {
     const cancelBtn = modal.querySelector('.confirm-cancel') as HTMLButtonElement | null;
     const okBtn = modal.querySelector('.confirm-ok') as HTMLButtonElement | null;
 
-    const toast = document.createElement('div');
-    toast.id = 'actionLoadingToast';
-    toast.className = 'action-loading-toast';
-    toast.innerHTML = `<span class="mini-spinner"></span><strong>Memproses...</strong>`;
-    document.body.appendChild(toast);
-
     const closeConfirm = () => {
       pendingForm = null;
       modal.classList.remove('show');
-    };
-
-    let loadingTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    const resetLoading = () => {
-      if (loadingTimeout) clearTimeout(loadingTimeout);
-      loadingTimeout = null;
-      toast.classList.remove('show');
-      toast.classList.remove('is-error');
-      toast.querySelector('strong')!.textContent = 'Memproses...';
-      document.querySelectorAll<HTMLFormElement>('form.is-submitting, form[data-submitting="1"]').forEach((activeForm) => {
-        activeForm.classList.remove('is-submitting');
-        delete activeForm.dataset.submitting;
-        delete activeForm.dataset.confirmed;
-      });
-      document.querySelectorAll<HTMLButtonElement>('button.is-loading').forEach((btn) => {
-        btn.disabled = false;
-        btn.classList.remove('is-loading');
-        if (btn.dataset.originalHtml) {
-          btn.innerHTML = btn.dataset.originalHtml;
-          delete btn.dataset.originalHtml;
-        }
-      });
-      document.querySelectorAll<HTMLInputElement>('input[type="submit"]:disabled').forEach((btn) => {
-        btn.disabled = false;
-      });
-    };
-
-    const showLoading = (form: HTMLFormElement) => {
-      const text = form.dataset.loadingText || 'Memproses aksi...';
-      form.classList.add('is-submitting');
-      form.dataset.submitting = '1';
-      toast.querySelector('strong')!.textContent = text;
-      toast.classList.add('show');
-      const buttons = form.querySelectorAll<HTMLButtonElement | HTMLInputElement>('button, input[type="submit"]');
-      buttons.forEach((btn) => {
-        if (btn instanceof HTMLButtonElement) {
-          if (!btn.dataset.originalHtml) btn.dataset.originalHtml = btn.innerHTML;
-          btn.disabled = true;
-          btn.classList.add('is-loading');
-          btn.innerHTML = `<span class="btn-spinner"></span>${text}`;
-        } else {
-          btn.disabled = true;
-        }
-      });
-
-      // Pengaman: kalau browser/server action tidak melakukan full reload,
-      // loading tidak boleh nyangkut selamanya.
-      if (loadingTimeout) clearTimeout(loadingTimeout);
-      loadingTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-        toast.querySelector('strong')!.textContent = 'Selesai diproses';
-        document.querySelectorAll<HTMLButtonElement>('button.is-loading').forEach((btn) => {
-          btn.disabled = false;
-          btn.classList.remove('is-loading');
-          if (btn.dataset.originalHtml) {
-            btn.innerHTML = btn.dataset.originalHtml;
-            delete btn.dataset.originalHtml;
-          }
-        });
-      }, 18000);
     };
 
     const submitConfirmed = () => {
@@ -142,9 +75,6 @@ export default function AdminClient() {
       if (e.target === modal) closeConfirm();
     });
 
-    window.addEventListener('pageshow', resetLoading);
-    window.addEventListener('popstate', resetLoading);
-
     const submitHandler = (e: Event) => {
       const form = e.target as HTMLFormElement;
       if (!(form instanceof HTMLFormElement)) return;
@@ -157,11 +87,6 @@ export default function AdminClient() {
         if (modalMessage) modalMessage.textContent = message;
         if (okBtn) okBtn.innerHTML = /hapus|delete/i.test(message) ? '<i class="bi bi-trash3"></i> Ya, hapus' : '<i class="bi bi-check2"></i> Ya, lanjutkan';
         modal.classList.add('show');
-        return;
-      }
-
-      if (form.dataset.loadingText && form.dataset.submitting !== '1') {
-        showLoading(form);
       }
     };
 
@@ -170,11 +95,7 @@ export default function AdminClient() {
     return () => {
       toggleBtn?.removeEventListener('click', toggle);
       document.removeEventListener('submit', submitHandler);
-      window.removeEventListener('pageshow', resetLoading);
-      window.removeEventListener('popstate', resetLoading);
-      if (loadingTimeout) clearTimeout(loadingTimeout);
       modal.remove();
-      toast.remove();
       clearTimeout(timer);
     };
   }, []);

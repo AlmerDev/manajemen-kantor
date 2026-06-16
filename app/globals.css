@@ -4709,3 +4709,132 @@ form.is-submitting button,
 .scan-info-card .scan-kicker {
   color: #64748b !important;
 }
+
+/* =========================================================
+   GLOBAL PROCESS LOADING PATCH
+   Semua form/action/link internal kasih feedback proses.
+   ========================================================= */
+html.is-global-loading,
+html.is-global-loading body {
+  cursor: progress !important;
+}
+html.is-global-loading::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 3px;
+  z-index: 6000;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #1d4ed8, #60a5fa, #2563eb);
+  animation: globalProgress 1.05s ease-in-out infinite;
+  box-shadow: 0 0 16px rgba(37, 99, 235, .35);
+}
+@keyframes globalProgress {
+  0% { transform: translateX(-105%); }
+  55% { transform: translateX(90vw); }
+  100% { transform: translateX(105vw); }
+}
+.global-process-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: none;
+  place-items: center;
+  background: rgba(15, 23, 42, .16);
+  backdrop-filter: blur(2px);
+}
+.global-process-overlay.show {
+  display: grid;
+}
+.global-process-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(360px, calc(100vw - 32px));
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(226, 232, 240, .95);
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, .20);
+  color: #0f172a;
+}
+.global-process-card strong,
+.global-process-card small {
+  display: block;
+  line-height: 1.35;
+}
+.global-process-card small {
+  margin-top: 2px;
+  color: #64748b;
+  font-weight: 600;
+}
+.global-process-spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  animation: spin .75s linear infinite;
+  flex: 0 0 auto;
+}
+.action-loading-toast {
+  font-weight: 700 !important;
+}
+.action-loading-toast .mini-spinner,
+.action-loading-toast .btn-spinner,
+.global-process-spinner,
+.btn-spinner {
+  transform-origin: center !important;
+}
+button.is-loading,
+form.is-submitting button,
+.action-btn.is-loading,
+.btn.is-loading {
+  cursor: wait !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+button.is-loading,
+form.is-submitting button,
+.action-btn.is-loading,
+.btn.is-loading,
+a.is-link-loading {
+  opacity: .78 !important;
+}
+a.is-link-loading {
+  cursor: progress !important;
+  pointer-events: none !important;
+  position: relative;
+}
+a.is-link-loading::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  margin-left: 7px;
+  border-radius: 999px;
+  border: 2px solid rgba(37, 99, 235, .22);
+  border-top-color: #2563eb;
+  display: inline-block;
+  vertical-align: -2px;
+  animation: spin .75s linear infinite;
+}
+button .btn-spinner,
+.btn .btn-spinner,
+.action-btn .btn-spinner,
+.guest-submit .btn-spinner,
+.topbar-logout .btn-spinner {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 8px !important;
+}
+form.is-submitting .publish-switch .btn-spinner {
+  margin-right: 6px !important;
+}
+@media (max-width: 640px) {
+  html.is-global-loading::before {
+    width: 60%;
+  }
+}
